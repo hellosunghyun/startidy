@@ -12,7 +12,7 @@ import { checkForUpdates } from "./utils/update-checker";
 config();
 
 // Check for updates in the background (non-blocking)
-checkForUpdates();
+void checkForUpdates();
 
 const program = new Command();
 

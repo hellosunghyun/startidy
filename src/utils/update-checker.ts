@@ -29,13 +29,14 @@ function isNewerVersion(current: string, latest: string): boolean {
  * Check if a newer version is available on npm
  */
 export async function checkForUpdates(): Promise<void> {
+  let timeout: NodeJS.Timeout | undefined;
   try {
     const pkg = require("../../package.json");
     const packageName = pkg.name;
     const currentVersion = pkg.version;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    timeout = setTimeout(() => controller.abort(), 3000); // 3 second timeout
 
     const response = await fetch(
       `https://registry.npmjs.org/${packageName}/latest`,
@@ -46,8 +47,6 @@ export async function checkForUpdates(): Promise<void> {
         },
       }
     );
-
-    clearTimeout(timeout);
 
     if (!response.ok) {
       return; // Silently fail if package not found or other error
@@ -74,5 +73,9 @@ export async function checkForUpdates(): Promise<void> {
     }
   } catch {
     // Silently fail - don't block CLI usage due to network issues
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
   }
 }
