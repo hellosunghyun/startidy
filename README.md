@@ -60,15 +60,59 @@ npm run build
 npm link
 ```
 
-## Environment Variables
+## Configuration
 
-Create a `.env` file and add the following:
+You can configure Stardust CLI in three ways:
+
+### Option 1: CLI Arguments (Recommended for one-time use)
+
+```bash
+stardust --token ghp_xxx --username your-name --gemini-key AIza_xxx run
+```
+
+### Option 2: Environment Variables
+
+```bash
+# Linux/macOS
+export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+export GITHUB_USERNAME=your-username
+export GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Windows (PowerShell)
+$env:GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx"
+$env:GITHUB_USERNAME="your-username"
+$env:GEMINI_API_KEY="AIzaxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Windows (CMD)
+set GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+set GITHUB_USERNAME=your-username
+set GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Then run
+stardust run
+```
+
+### Option 3: `.env` File (Recommended for repeated use)
+
+Create a `.env` file in your current directory:
 
 ```env
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 GITHUB_USERNAME=your-username
 GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
 ```
+
+### Global CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `--token <token>` | GitHub Personal Access Token |
+| `--username <username>` | GitHub Username |
+| `--gemini-key <key>` | Google Gemini API Key |
+| `--max-categories <n>` | Maximum categories (default: 32) |
+| `--batch-size <n>` | Batch size for classification (default: 20) |
+| `--private` | Create private Lists |
+| `--debug` | Enable debug mode |
 
 ### Getting a GitHub Token
 
@@ -90,6 +134,9 @@ GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
 ```bash
 # Run the full workflow (plan → delete → create → classify)
 stardust run
+
+# With inline credentials
+stardust --token ghp_xxx --username myname --gemini-key AIza_xxx run
 
 # Process only newly starred repositories (keep existing Lists)
 stardust run --only-new
@@ -263,26 +310,33 @@ stardust-cli/
 
 ## Environment Variables Reference
 
-See `.env.example` for all options. Key settings:
+All available environment variables:
 
 ```env
 # Required
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-GITHUB_USERNAME=your-username
-GEMINI_API_KEY=AIzaxxxxxxxxxx
+GITHUB_TOKEN=ghp_xxxxxxxxxxxx        # GitHub Personal Access Token
+GITHUB_USERNAME=your-username         # Your GitHub username
+GEMINI_API_KEY=AIzaxxxxxxxxxx         # Google Gemini API Key
 
 # Category Settings
-MAX_CATEGORIES=32              # Maximum categories
-MAX_CATEGORIES_PER_REPO=3      # Max categories per repo
-MIN_CATEGORIES_PER_REPO=1      # Min categories per repo
+MAX_CATEGORIES=32                     # Maximum categories (GitHub limit: 32)
+MAX_CATEGORIES_PER_REPO=3             # Max categories per repo
+MIN_CATEGORIES_PER_REPO=1             # Min categories per repo
 
 # Batch Processing
-CLASSIFY_BATCH_SIZE=20         # Gemini classification batch size
-BATCH_DELAY=2000               # Delay between batches (ms)
+CLASSIFY_BATCH_SIZE=20                # Repos per batch for classification
+BATCH_DELAY=2000                      # Delay between batches (ms)
+
+# List Settings
+LIST_IS_PRIVATE=false                 # Create private Lists
 
 # Gemini Settings
-GEMINI_MODEL=gemini-2.5-flash  # Model to use
-GEMINI_RPM=15                  # Requests per minute limit (Free tier)
+GEMINI_MODEL=gemini-2.5-flash         # Model to use
+GEMINI_RPM=15                         # Requests per minute (Free tier)
+
+# Debug
+DEBUG=false                           # Enable debug output
+LOG_API_RESPONSES=false               # Log raw API responses
 ```
 
 ## Tech Stack
