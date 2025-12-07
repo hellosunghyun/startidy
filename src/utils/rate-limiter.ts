@@ -31,6 +31,63 @@ export function delay(ms: number): Promise<void> {
 }
 
 /**
+ * Retry with exponential backoff
+ */
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  options: {
+    maxRetries?: number;
+    initialDelayMs?: number;
+    maxDelayMs?: number;
+  } = {},
+): Promise<T> {
+  const { maxRetries = 3, initialDelayMs = 500, maxDelayMs = 5000 } = options;
+
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (attempt < maxRetries) {
+        const delayMs = Math.min(initialDelayMs * Math.pow(2, attempt), maxDelayMs);
+        await delay(delayMs);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * Run async tasks with concurrency limit
+ */
+export async function runWithConcurrency<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  concurrency: number,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let currentIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (currentIndex < items.length) {
+      const index = currentIndex++;
+      results[index] = await processor(items[index]);
+    }
+  }
+
+  const workers = Array(Math.min(concurrency, items.length))
+    .fill(null)
+    .map(() => worker());
+
+  await Promise.all(workers);
+  return results;
+}
+
+/**
  * Process items in batches with concurrency control
  */
 export async function processBatch<T, R>(

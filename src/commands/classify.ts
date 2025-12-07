@@ -3,7 +3,7 @@ import { confirm } from "@inquirer/prompts";
 import ora from "ora";
 import { loadConfig } from "../utils/config";
 import { loadPlan } from "../utils/plan-storage";
-import { delay } from "../utils/rate-limiter";
+import { delay, retryWithBackoff, runWithConcurrency } from "../utils/rate-limiter";
 import { GeminiService } from "../services/gemini";
 import type { Category, CreatedList } from "../types";
 import type { BatchRepoInfo } from "../prompts/classifier";
@@ -186,10 +186,11 @@ async function classifyAndAddRepos(
       continue;
     }
 
-    // Add to Lists (parallel processing)
+    // Add to Lists (with concurrency limit and retry)
     const addSpinner = ora(`Adding to Lists...`).start();
-    const addResults = await Promise.all(
-      batchRepos.map(async (repo) => {
+    const addResults = await runWithConcurrency(
+      batchRepos,
+      async (repo) => {
         const repoId = `${repo.owner.login}/${repo.name}`;
         const categoryNames = results.get(repoId) || [];
 
@@ -202,18 +203,23 @@ async function classifyAndAddRepos(
             return { repoId, success: false, error: "No matching category" };
           }
 
-          const repoNodeId = await getRepositoryNodeId(
-            config.githubToken,
-            repo.owner.login,
-            repo.name,
-          );
-          await addRepoToGitHubLists(config.githubToken, repoNodeId, listIds);
+          // Retry with exponential backoff for GitHub API errors
+          await retryWithBackoff(async () => {
+            const repoNodeId = await getRepositoryNodeId(
+              config.githubToken,
+              repo.owner.login,
+              repo.name,
+            );
+            await addRepoToGitHubLists(config.githubToken, repoNodeId, listIds);
+          }, { maxRetries: 3, initialDelayMs: 500 });
+
           return { repoId, success: true, categories: categoryNames };
         } catch (error) {
           const errMsg = error instanceof Error ? error.message : String(error);
           return { repoId, success: false, error: errMsg };
         }
-      }),
+      },
+      5, // Concurrency limit: 5 parallel requests
     );
 
     // Count results
