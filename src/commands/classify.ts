@@ -186,41 +186,42 @@ async function classifyAndAddRepos(
       continue;
     }
 
-    // Add to Lists
-    const addSpinner = ora(`Adding to Lists... (0/${batchRepos.length})`).start();
-    let addCount = 0;
-    const addResults: { repoId: string; success: boolean; categories?: string[] }[] = [];
+    // Add to Lists (parallel processing)
+    const addSpinner = ora(`Adding to Lists...`).start();
+    const addResults = await Promise.all(
+      batchRepos.map(async (repo) => {
+        const repoId = `${repo.owner.login}/${repo.name}`;
+        const categoryNames = results.get(repoId) || [];
 
-    for (const repo of batchRepos) {
-      const repoId = `${repo.owner.login}/${repo.name}`;
-      const categoryNames = results.get(repoId) || [];
+        try {
+          const listIds = categoryNames
+            .map((name) => createdLists.get(name)?.id)
+            .filter((id): id is string => !!id);
 
-      try {
-        const listIds = categoryNames
-          .map((name) => createdLists.get(name)?.id)
-          .filter((id): id is string => !!id);
+          if (listIds.length === 0) {
+            return { repoId, success: false };
+          }
 
-        if (listIds.length === 0) {
-          addResults.push({ repoId, success: false });
-          failed++;
-        } else {
           const repoNodeId = await getRepositoryNodeId(
             config.githubToken,
             repo.owner.login,
             repo.name,
           );
           await addRepoToGitHubLists(config.githubToken, repoNodeId, listIds);
-          addResults.push({ repoId, success: true, categories: categoryNames });
-          success++;
-          await delay(config.githubRequestDelay);
+          return { repoId, success: true, categories: categoryNames };
+        } catch (error) {
+          return { repoId, success: false };
         }
-      } catch (error) {
-        addResults.push({ repoId, success: false });
+      }),
+    );
+
+    // Count results
+    for (const result of addResults) {
+      if (result.success) {
+        success++;
+      } else {
         failed++;
       }
-
-      addCount++;
-      addSpinner.text = `Adding to Lists... (${addCount}/${batchRepos.length})`;
     }
     addSpinner.succeed(`Added to Lists (${batchRepos.length})`);
 
