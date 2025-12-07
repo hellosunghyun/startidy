@@ -1,15 +1,46 @@
 import { graphql } from "./client";
-import type { FormattedResponse, GitHubList, GitHubListItem } from "./types";
+import type { FormattedResponse, GitHubListItem } from "./types";
 
-// GraphQL response types
-interface UserListsResponse {
+// GraphQL response types - ListsOnlyResponse used for paginated list fetching
+interface ListsOnlyResponse {
   user: {
     lists: {
       totalCount: number;
-      nodes: GitHubList[];
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      nodes: Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        isPrivate: boolean;
+        lastAddedAt: string | null;
+        slug: string;
+        createdAt: string;
+        updatedAt: string;
+        items: { totalCount: number };
+      }>;
     };
   } | null;
 }
+
+interface ListItemsResponse {
+  node: {
+    items: {
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+      nodes: Array<{
+        __typename: string;
+        name?: string;
+        url?: string;
+        isPrivate?: boolean;
+        description?: string | null;
+        stargazerCount?: number;
+        owner?: { login: string };
+      }>;
+    };
+  } | null;
+}
+
+type ListNode = NonNullable<ListsOnlyResponse["user"]>["lists"]["nodes"][number];
+type ListItemNode = NonNullable<ListItemsResponse["node"]>["items"]["nodes"][number];
 
 interface CreateListResponse {
   createUserList: {
@@ -103,33 +134,14 @@ export async function fetchGitHubLists(
     }
   `;
 
-  interface ListsOnlyResponse {
-    user: {
-      lists: {
-        totalCount: number;
-        pageInfo: { hasNextPage: boolean; endCursor: string | null };
-        nodes: Array<{
-          id: string;
-          name: string;
-          description: string | null;
-          isPrivate: boolean;
-          lastAddedAt: string | null;
-          slug: string;
-          createdAt: string;
-          updatedAt: string;
-          items: { totalCount: number };
-        }>;
-      };
-    } | null;
-  }
-
   // Fetch all lists with pagination
-  const allLists: ListsOnlyResponse["user"]["lists"]["nodes"] = [];
+  const allLists: ListNode[] = [];
   let cursor: string | null = null;
   let totalCount = 0;
 
-  do {
-    const data = await graphql<ListsOnlyResponse>(token, listsQuery, {
+  let hasNextPage = true;
+  while (hasNextPage) {
+    const data: ListsOnlyResponse = await graphql<ListsOnlyResponse>(token, listsQuery, {
       username,
       cursor,
     });
@@ -141,12 +153,9 @@ export async function fetchGitHubLists(
     totalCount = data.user.lists.totalCount;
     allLists.push(...data.user.lists.nodes);
 
-    if (data.user.lists.pageInfo.hasNextPage) {
-      cursor = data.user.lists.pageInfo.endCursor;
-    } else {
-      cursor = null;
-    }
-  } while (cursor);
+    hasNextPage = data.user.lists.pageInfo.hasNextPage;
+    cursor = data.user.lists.pageInfo.endCursor;
+  }
 
   // Fetch items for each list individually to avoid resource limits
   const itemsQuery = `
@@ -175,46 +184,26 @@ export async function fetchGitHubLists(
     }
   `;
 
-  interface ListItemsResponse {
-    node: {
-      items: {
-        pageInfo: { hasNextPage: boolean; endCursor: string | null };
-        nodes: Array<{
-          __typename: string;
-          name?: string;
-          url?: string;
-          isPrivate?: boolean;
-          description?: string | null;
-          stargazerCount?: number;
-          owner?: { login: string };
-        }>;
-      };
-    } | null;
-  }
-
   const formattedLists = await Promise.all(
-    allLists.map(async (list) => {
-      const allItems: ListItemsResponse["node"]["items"]["nodes"] = [];
+    allLists.map(async (list: ListNode) => {
+      const allItems: ListItemNode[] = [];
       let itemCursor: string | null = null;
+      let hasMoreItems = true;
 
-      do {
-        const itemsData = await graphql<ListItemsResponse>(token, itemsQuery, {
+      while (hasMoreItems) {
+        const itemsData: ListItemsResponse = await graphql<ListItemsResponse>(token, itemsQuery, {
           listId: list.id,
           cursor: itemCursor,
         });
 
         if (itemsData.node?.items) {
           allItems.push(...itemsData.node.items.nodes);
-
-          if (itemsData.node.items.pageInfo.hasNextPage) {
-            itemCursor = itemsData.node.items.pageInfo.endCursor;
-          } else {
-            itemCursor = null;
-          }
+          hasMoreItems = itemsData.node.items.pageInfo.hasNextPage;
+          itemCursor = itemsData.node.items.pageInfo.endCursor;
         } else {
-          itemCursor = null;
+          hasMoreItems = false;
         }
-      } while (itemCursor);
+      }
 
       return {
         id: list.id,
