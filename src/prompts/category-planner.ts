@@ -12,33 +12,33 @@ export function buildCategoryPlannerPrompt(
     )
     .join("\n");
 
-  return `당신은 GitHub Stars를 정리하는 전문가입니다.
-아래는 사용자가 Star한 ${repos.length}개의 저장소 목록입니다.
+  return `You are an expert at organizing GitHub Stars.
+Below is a list of ${repos.length} starred repositories.
 
-## 저장소 목록:
+## Repository List:
 ${repoList}
 
-## 요청사항:
-이 저장소들을 효과적으로 분류할 수 있는 **정확히 ${config.maxCategories}개**의 카테고리를 기획해주세요.
+## Requirements:
+Plan **exactly ${config.maxCategories}** categories to effectively classify these repositories.
 
-## 카테고리 네이밍 규칙 (중요!):
-- 형식: "대분류: 소분류" (예: "Lang: Python", "AI: LLM & Chatbot")
-- **최대 ${config.listNameMaxLength}자 이내** (공백, 콜론 포함)
-- 영어로 작성
+## Category Naming Rules (Important!):
+- Format: "Major: Minor" (e.g., "Lang: Python", "AI: LLM & Chatbot")
+- **Maximum ${config.listNameMaxLength} characters** (including spaces and colon)
+- Write in English
 
-## 대분류 예시:
-- Lang: 프로그래밍 언어별 (Lang: Python, Lang: JS & TS, Lang: Go, Lang: Rust 등)
-- AI: 인공지능 관련 (AI: LLM & Chatbot, AI: Image & Video, AI: Agent 등)
-- Web: 웹 개발 (Web: Frontend & UI, Web: Backend & API, Web: Crawler 등)
-- Infra: 인프라/데브옵스 (Infra: Docker & Cloud, Infra: Security, Infra: DB 등)
-- Type: 유형별 (Type: Self-Hosted, Type: App & Tool, Type: Starter & Lib 등)
-- MC: 마인크래프트 (MC: Server Core, MC: Mods & Plugins 등) - 해당되는 경우만
-- 기타 필요한 대분류 자유롭게 추가
+## Major Category Examples:
+- Lang: By programming language (Lang: Python, Lang: JS & TS, Lang: Go, Lang: Rust, etc.)
+- AI: Artificial intelligence (AI: LLM & Chatbot, AI: Image & Video, AI: Agent, etc.)
+- Web: Web development (Web: Frontend & UI, Web: Backend & API, Web: Crawler, etc.)
+- Infra: Infrastructure/DevOps (Infra: Docker & Cloud, Infra: Security, Infra: DB, etc.)
+- Type: By type (Type: Self-Hosted, Type: App & Tool, Type: Starter & Lib, etc.)
+- MC: Minecraft (MC: Server Core, MC: Mods & Plugins, etc.) - only if applicable
+- Feel free to add other major categories as needed
 
-## 카테고리 기획 원칙:
-1. 저장소들이 고르게 분포되도록 설계
-2. 각 대분류마다 ETC 카테고리 포함 (예: "Lang: ETC", "AI: ETC")
-3. 저장소 특성에 맞게 대분류/소분류 구성
+## Category Planning Principles:
+1. Design for even distribution of repositories
+2. Include an ETC category for each major category (e.g., "Lang: ETC", "AI: ETC")
+3. Structure major/minor categories based on repository characteristics
 
-정확히 ${config.maxCategories}개의 카테고리를 생성해주세요. 각 카테고리의 name은 반드시 ${config.listNameMaxLength}자 이내로!`;
+Generate exactly ${config.maxCategories} categories. Each category name must be within ${config.listNameMaxLength} characters!`;
 }

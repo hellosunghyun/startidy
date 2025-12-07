@@ -45,7 +45,7 @@ export async function fetchRepositoryReadme(
     const response = await fetch("https://api.github.com/graphql", {
       method: "POST",
       headers: {
-        "User-Agent": "GitHub-Stars-Arrange",
+        "User-Agent": "Stardust-CLI",
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },

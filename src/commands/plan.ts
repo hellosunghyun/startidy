@@ -7,58 +7,58 @@ import { fetchAllMyStarredRepos } from "../api";
 import type { RepoSummary } from "../types";
 
 export const planCommand = new Command("plan")
-  .description("카테고리 기획 (Stars 분석 후 카테고리 생성)")
-  .option("--show", "저장된 기획 보기")
-  .option("--delete", "저장된 기획 삭제")
+  .description("Plan categories (analyze Stars and create categories)")
+  .option("--show", "Show saved plan")
+  .option("--delete", "Delete saved plan")
   .action(async (options) => {
     try {
-      // --show: 저장된 기획 보기
+      // --show: Show saved plan
       if (options.show) {
         const plan = loadPlan();
         if (!plan) {
-          console.log("\n저장된 기획이 없습니다. 'plan' 명령어로 먼저 기획하세요.");
+          console.log("\nNo saved plan found. Run 'plan' command first.");
           return;
         }
         displayPlan(plan.categories, plan.repoCount, plan.createdAt);
         return;
       }
 
-      // --delete: 저장된 기획 삭제
+      // --delete: Delete saved plan
       if (options.delete) {
         if (deletePlan()) {
-          console.log("\n✅ 저장된 기획이 삭제되었습니다.");
+          console.log("\n✅ Saved plan has been deleted.");
         } else {
-          console.log("\n저장된 기획이 없습니다.");
+          console.log("\nNo saved plan found.");
         }
         return;
       }
 
-      // 기본: 새로운 기획 생성
+      // Default: Create new plan
       const config = loadConfig();
       const gemini = new GeminiService(config);
 
-      console.log("\n🎯 카테고리 기획을 시작합니다.\n");
+      console.log("\n🎯 Starting category planning.\n");
 
-      // Step 1: Starred repos 가져오기
-      const spinner = ora("Starred 저장소 가져오는 중...").start();
+      // Step 1: Fetch starred repos
+      const spinner = ora("Fetching starred repositories...").start();
       const result = await fetchAllMyStarredRepos(
         config.githubToken,
         config.githubUsername,
         (count) => {
-          spinner.text = `Starred 저장소 가져오는 중... (${count}개)`;
+          spinner.text = `Fetching starred repositories... (${count})`;
         },
       );
 
       if (result.status !== 200 || !result.repos) {
-        spinner.fail("Starred 저장소 조회 실패");
+        spinner.fail("Failed to fetch starred repositories");
         throw new Error(`Failed to fetch starred repos: status ${result.status}`);
       }
 
       const repos = result.repos;
-      spinner.succeed(`${repos.length}개의 Starred 저장소를 가져왔습니다.`);
+      spinner.succeed(`Fetched ${repos.length} starred repositories.`);
 
-      // Step 2: AI 카테고리 기획
-      const planSpinner = ora(`AI가 ${config.maxCategories}개 카테고리를 기획하는 중...`).start();
+      // Step 2: AI category planning
+      const planSpinner = ora(`AI is planning ${config.maxCategories} categories...`).start();
 
       const repoSummaries: RepoSummary[] = repos.map((r) => ({
         owner: r.owner.login,
@@ -69,22 +69,22 @@ export const planCommand = new Command("plan")
       }));
 
       const categories = await gemini.planCategories(repoSummaries);
-      planSpinner.succeed(`${categories.length}개의 카테고리가 기획되었습니다.`);
+      planSpinner.succeed(`${categories.length} categories have been planned.`);
 
-      // Step 3: 기획 저장
+      // Step 3: Save plan
       savePlan(categories, repos.length);
-      console.log("\n💾 기획이 저장되었습니다. (.github-stars-plan.json)");
+      console.log("\n💾 Plan has been saved. (.stardust-plan.json)");
 
-      // Step 4: 결과 표시
+      // Step 4: Display results
       displayPlan(categories, repos.length, new Date().toISOString());
 
-      console.log("\n📌 다음 단계:");
-      console.log("  1. 기존 Lists 삭제: bun run src/index.ts lists --delete-all");
-      console.log("  2. Lists 생성: bun run src/index.ts create-lists");
-      console.log("  3. Stars 분류: bun run src/index.ts classify");
-      console.log("\n  또는 전체 자동 실행: bun run src/index.ts run");
+      console.log("\n📌 Next steps:");
+      console.log("  1. Delete existing Lists: stardust lists --delete-all");
+      console.log("  2. Create Lists: stardust create-lists");
+      console.log("  3. Classify Stars: stardust classify");
+      console.log("\n  Or run full automation: stardust run");
     } catch (error) {
-      console.error("\n❌ 오류 발생:", (error as Error).message);
+      console.error("\n❌ Error:", (error as Error).message);
       process.exit(1);
     }
   });
@@ -94,7 +94,7 @@ function displayPlan(
   repoCount: number,
   createdAt: string,
 ) {
-  console.log("\n📋 기획된 카테고리:\n");
+  console.log("\n📋 Planned Categories:\n");
   console.log("─".repeat(60));
 
   categories.forEach((c, i) => {
@@ -105,8 +105,8 @@ function displayPlan(
   });
 
   console.log("─".repeat(60));
-  console.log(`\n📊 요약:`);
-  console.log(`  - 카테고리: ${categories.length}개`);
-  console.log(`  - 대상 저장소: ${repoCount}개`);
-  console.log(`  - 생성 시간: ${new Date(createdAt).toLocaleString("ko-KR")}`);
+  console.log(`\n📊 Summary:`);
+  console.log(`  - Categories: ${categories.length}`);
+  console.log(`  - Target repositories: ${repoCount}`);
+  console.log(`  - Created at: ${new Date(createdAt).toLocaleString()}`);
 }

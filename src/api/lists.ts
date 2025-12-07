@@ -52,7 +52,7 @@ export async function fetchGitHubLists(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
@@ -148,7 +148,7 @@ export async function createGitHubList(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
@@ -218,7 +218,7 @@ export async function updateGitHubList(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
@@ -271,7 +271,7 @@ export async function deleteGitHubList(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
@@ -344,7 +344,7 @@ export async function addRepoToGitHubLists(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
@@ -416,7 +416,7 @@ export async function removeRepoFromGitHubLists(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
@@ -477,7 +477,7 @@ export async function removeRepoFromAllLists(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },

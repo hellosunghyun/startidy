@@ -44,11 +44,11 @@ export class GeminiService {
             properties: {
               name: {
                 type: Type.STRING,
-                description: "카테고리 이름 (최대 20자, 대분류: 소분류 형식)",
+                description: "Category name (max 20 chars, format: Major: Minor)",
               },
               description: {
                 type: Type.STRING,
-                description: "카테고리 설명",
+                description: "Category description",
               },
             },
             required: ["name", "description"],
@@ -121,14 +121,14 @@ export class GeminiService {
             properties: {
               id: {
                 type: Type.STRING,
-                description: "저장소 ID (owner/name 형식)",
+                description: "Repository ID (owner/name format)",
               },
               categories: {
                 type: Type.ARRAY,
                 items: {
                   type: Type.STRING,
                 },
-                description: "선택된 카테고리 이름들",
+                description: "Selected category names",
               },
             },
             required: ["id", "categories"],
@@ -177,7 +177,7 @@ export class GeminiService {
           items: {
             type: Type.STRING,
           },
-          description: "선택된 카테고리 이름들",
+          description: "Selected category names",
         },
       },
       required: ["categories"],
@@ -215,24 +215,23 @@ export class GeminiService {
     try {
       let jsonStr = text.trim();
 
-      // 잘린 JSON 복구 시도
+      // Attempt to recover truncated JSON
       if (!jsonStr.endsWith("}")) {
         const openBraces = (jsonStr.match(/\{/g) || []).length;
         const closeBraces = (jsonStr.match(/\}/g) || []).length;
         const openBrackets = (jsonStr.match(/\[/g) || []).length;
         const closeBrackets = (jsonStr.match(/\]/g) || []).length;
 
-        // 마지막 완전한 객체까지만 파싱하기 위해 불완전한 부분 제거
+        // Remove incomplete part after the last complete object
         const lastCompleteIdx = jsonStr.lastIndexOf("}");
         if (lastCompleteIdx > 0) {
-          // 마지막 완전한 객체 뒤의 불완전한 부분 제거
           const afterLast = jsonStr.slice(lastCompleteIdx + 1);
           if (afterLast.includes("{") && !afterLast.includes("}")) {
             jsonStr = jsonStr.slice(0, lastCompleteIdx + 1);
           }
         }
 
-        // 부족한 괄호 추가
+        // Add missing brackets
         jsonStr += "]".repeat(Math.max(0, openBrackets - closeBrackets));
         jsonStr += "}".repeat(Math.max(0, openBraces - closeBraces));
       }
@@ -256,7 +255,7 @@ export class GeminiService {
         );
       }
 
-      // 응답에 없는 repo는 기본값
+      // Repos not in response get default
       for (const repo of repos) {
         if (!resultMap.has(repo.id)) {
           resultMap.set(repo.id, [defaultCategory]);
@@ -268,7 +267,7 @@ export class GeminiService {
         console.error("Raw response:", text);
       }
 
-      // 파싱 실패 시 개별 패턴 추출 시도
+      // Fallback: try to extract individual patterns
       const linePattern = /"id"\s*:\s*"([^"]+)"[^}]*"categories"\s*:\s*\[([^\]]*)\]/g;
       let match;
       while ((match = linePattern.exec(text)) !== null) {
@@ -285,7 +284,7 @@ export class GeminiService {
         }
       }
 
-      // 여전히 없는 repo는 기본값
+      // Remaining repos get default
       for (const repo of repos) {
         if (!resultMap.has(repo.id)) {
           resultMap.set(repo.id, [defaultCategory]);
@@ -301,7 +300,7 @@ export class GeminiService {
     categories: Category[],
   ): ClassificationResult {
     try {
-      // Structured Output이므로 바로 JSON 파싱
+      // Structured Output - parse JSON directly
       const parsed = JSON.parse(text.trim());
 
       if (!parsed.categories || !Array.isArray(parsed.categories)) {

@@ -6,41 +6,41 @@ import { delay } from "../utils/rate-limiter";
 import { createGitHubList, fetchGitHubLists } from "../api";
 
 export const createListsCommand = new Command("create-lists")
-  .description("기획된 카테고리로 GitHub Lists 생성")
-  .option("--force", "기존 Lists가 있어도 추가 생성")
+  .description("Create GitHub Lists from planned categories")
+  .option("--force", "Create additional Lists even if some exist")
   .action(async (options) => {
     try {
       const config = loadConfig();
 
-      console.log("\n📁 Lists 생성을 시작합니다.\n");
+      console.log("\n📁 Starting Lists creation.\n");
 
-      // Step 1: 저장된 기획 확인
+      // Step 1: Check saved plan
       const plan = loadPlan();
       if (!plan) {
-        console.log("❌ 저장된 기획이 없습니다.");
-        console.log("   먼저 'plan' 명령어로 카테고리를 기획하세요.");
+        console.log("❌ No saved plan found.");
+        console.log("   Please run 'plan' command first.");
         return;
       }
 
-      console.log(`📋 ${plan.categories.length}개 카테고리 기획 로드됨`);
-      console.log(`   생성 시간: ${new Date(plan.createdAt).toLocaleString("ko-KR")}`);
+      console.log(`📋 Loaded ${plan.categories.length} categories from plan`);
+      console.log(`   Created at: ${new Date(plan.createdAt).toLocaleString()}`);
 
-      // Step 2: 기존 Lists 확인
+      // Step 2: Check existing Lists
       if (!options.force) {
-        const spinner = ora("기존 Lists 확인 중...").start();
+        const spinner = ora("Checking existing Lists...").start();
         const existing = await fetchGitHubLists(config.githubUsername, config.githubToken);
         spinner.stop();
 
         if (existing.totalLists > 0) {
-          console.log(`\n⚠️ 기존 ${existing.totalLists}개의 Lists가 있습니다.`);
-          console.log("   --force 옵션으로 추가 생성하거나,");
-          console.log("   'lists --delete-all' 로 먼저 삭제하세요.");
+          console.log(`\n⚠️ ${existing.totalLists} Lists already exist.`);
+          console.log("   Use --force to create additional Lists, or");
+          console.log("   use 'lists --delete-all' to delete existing ones first.");
           return;
         }
       }
 
-      // Step 3: Lists 생성
-      const spinner = ora("Lists 생성 중...").start();
+      // Step 3: Create Lists
+      const spinner = ora("Creating Lists...").start();
       let created = 0;
       let failed = 0;
 
@@ -54,25 +54,25 @@ export const createListsCommand = new Command("create-lists")
           );
 
           created++;
-          spinner.text = `Lists 생성 중... (${created}/${plan.categories.length})`;
+          spinner.text = `Creating Lists... (${created}/${plan.categories.length})`;
 
           await delay(config.listCreateDelay);
         } catch (error) {
           failed++;
-          console.warn(`\n  ⚠️ "${category.name}" 생성 실패: ${(error as Error).message}`);
+          console.warn(`\n  ⚠️ Failed to create "${category.name}": ${(error as Error).message}`);
         }
       }
 
-      spinner.succeed(`${created}개의 Lists 생성 완료`);
+      spinner.succeed(`${created} Lists created`);
 
       if (failed > 0) {
-        console.log(`  ⚠️ ${failed}개 실패`);
+        console.log(`  ⚠️ ${failed} failed`);
       }
 
-      console.log("\n📌 다음 단계:");
-      console.log("  Stars 분류: bun run src/index.ts classify");
+      console.log("\n📌 Next step:");
+      console.log("  Classify Stars: stardust classify");
     } catch (error) {
-      console.error("\n❌ 오류 발생:", (error as Error).message);
+      console.error("\n❌ Error:", (error as Error).message);
       process.exit(1);
     }
   });

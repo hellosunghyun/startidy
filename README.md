@@ -1,16 +1,16 @@
-# GitHub Stars Arrange
+# ✨ Stardust CLI
 
-GitHub Stars를 AI(Gemini)를 활용해 자동으로 32개의 Lists로 정리하는 CLI 도구입니다.
+AI-powered CLI tool to automatically organize your GitHub Stars into Lists.
 
-## 주요 기능
+## Features
 
-- **자동 카테고리 기획**: Gemini AI가 Star한 저장소들을 분석해 32개의 카테고리를 자동 생성
-- **스마트 분류**: 각 저장소의 제목, 설명, README를 분석해 적합한 카테고리에 자동 배치
-- **대분류:소분류 형식**: `Lang: Python`, `AI: LLM & Chatbot` 같은 체계적인 네이밍 (20자 제한)
-- **단계별 실행**: 각 단계를 개별 실행하거나 전체 자동 실행 가능
-- **배치 처리**: 20개씩 병렬 처리로 빠른 분류
+- **Automatic Category Planning**: Gemini AI analyzes your starred repositories and creates 32 optimal categories
+- **Smart Classification**: Analyzes each repository's title, description, and README to place them in appropriate categories
+- **Hierarchical Naming**: Uses `Major: Minor` format like `Lang: Python`, `AI: LLM & Chatbot` (20 char limit)
+- **Step-by-Step or Full Automation**: Run individual steps or execute the entire workflow at once
+- **Batch Processing**: Parallel processing of 20 repositories at a time for faster classification
 
-## 카테고리 예시
+## Category Examples
 
 ```
 Lang: Python       Lang: JS & TS      Lang: Go           Lang: Rust
@@ -29,20 +29,40 @@ Type: Self-Hosted  Type: App & Tool   Type: Starter      Type: Resource
 Type: ETC
 ```
 
-## 설치
+## Installation
+
+### Global Install via npm (Recommended)
 
 ```bash
-# 저장소 클론
-git clone https://github.com/your-username/github-stars-arrange.git
-cd github-stars-arrange
-
-# 의존성 설치 (Bun 필요)
-bun install
+npm install -g stardust-cli
 ```
 
-## 환경 변수 설정
+After installation, you can use the `stardust` command directly:
 
-`.env` 파일을 생성하고 다음 내용을 입력하세요:
+```bash
+stardust run
+```
+
+### From Source
+
+```bash
+# Clone the repository
+git clone https://github.com/hellosunghyun/stardust-cli.git
+cd stardust-cli
+
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Link globally
+npm link
+```
+
+## Environment Variables
+
+Create a `.env` file and add the following:
 
 ```env
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
@@ -50,234 +70,234 @@ GITHUB_USERNAME=your-username
 GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-### GitHub Token 발급
+### Getting a GitHub Token
 
-1. [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens) 접속
-2. "Generate new token (classic)" 클릭
-3. 권한 선택: `repo`, `read:user`
-4. 토큰 생성 후 복사
+1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Select scopes: `repo`, `read:user`
+4. Generate and copy the token
 
-### Gemini API Key 발급
+### Getting a Gemini API Key
 
-1. [Google AI Studio](https://aistudio.google.com/app/apikey) 접속
-2. "Create API Key" 클릭
-3. API 키 복사
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Click "Create API Key"
+3. Copy the API key
 
-## 사용법
+## Usage
 
-### 전체 자동 실행 (`run` 명령어)
-
-```bash
-# 전체 워크플로우 자동 실행 (기획 → 삭제 → 생성 → 분류)
-bun run src/index.ts run
-
-# 새로 Star한 것만 처리 (기존 Lists 유지)
-bun run src/index.ts run --only-new
-
-# 시뮬레이션 모드 (기획만 확인)
-bun run src/index.ts run --dry-run
-```
-
-### 단계별 실행
-
-#### 1. 카테고리 기획 (`plan`)
+### Full Automation (`run` command)
 
 ```bash
-# Stars 분석 후 카테고리 기획 (파일로 저장됨)
-bun run src/index.ts plan
+# Run the full workflow (plan → delete → create → classify)
+stardust run
 
-# 저장된 기획 보기
-bun run src/index.ts plan --show
+# Process only newly starred repositories (keep existing Lists)
+stardust run --only-new
 
-# 저장된 기획 삭제
-bun run src/index.ts plan --delete
+# Simulation mode (preview categories only)
+stardust run --dry-run
 ```
 
-#### 2. Lists 관리 (`lists`)
+### Step-by-Step Execution
+
+#### 1. Plan Categories (`plan`)
 
 ```bash
-# Lists 전체 조회
-bun run src/index.ts lists
+# Analyze Stars and plan categories (saved to file)
+stardust plan
 
-# 새 List 생성
-bun run src/index.ts lists --create "Lang: Python" -d "Python 관련 프로젝트"
+# View saved plan
+stardust plan --show
 
-# 특정 List 삭제
-bun run src/index.ts lists --delete "Lang: Python"
-
-# 모든 Lists 삭제
-bun run src/index.ts lists --delete-all
+# Delete saved plan
+stardust plan --delete
 ```
 
-#### 3. Lists 생성 (`create-lists`)
+#### 2. Manage Lists (`lists`)
 
 ```bash
-# 기획된 카테고리로 Lists 생성
-bun run src/index.ts create-lists
+# View all Lists
+stardust lists
 
-# 기존 Lists가 있어도 추가 생성
-bun run src/index.ts create-lists --force
+# Create a new List
+stardust lists --create "Lang: Python" -d "Python projects"
+
+# Delete a specific List
+stardust lists --delete "Lang: Python"
+
+# Delete all Lists
+stardust lists --delete-all
 ```
 
-#### 4. Stars 분류 (`classify`)
+#### 3. Create Lists (`create-lists`)
 
 ```bash
-# Stars를 Lists에 분류/추가
-bun run src/index.ts classify
+# Create Lists from planned categories
+stardust create-lists
 
-# 아직 추가 안된 Stars만 처리
-bun run src/index.ts classify --only-new
-
-# 기존 Lists를 카테고리로 사용 (plan 파일 불필요)
-bun run src/index.ts classify --use-existing
-
-# 기존 Lists 기준으로 새 Stars만 분류
-bun run src/index.ts classify --use-existing --only-new
-
-# 되돌리기: 모든 Stars를 Lists에서 제거
-bun run src/index.ts classify --reset
+# Create Lists even if some already exist
+stardust create-lists --force
 ```
 
-### 명령어 옵션 요약
-
-| 명령어 | 옵션 | 설명 |
-|--------|------|------|
-| `run` | (없음) | 전체 자동 실행 |
-| `run` | `--only-new` | 새 Stars만 처리 |
-| `run` | `--dry-run` | 시뮬레이션 모드 |
-| `plan` | (없음) | 카테고리 기획 |
-| `plan` | `--show` | 저장된 기획 보기 |
-| `plan` | `--delete` | 저장된 기획 삭제 |
-| `lists` | (없음) | 모든 Lists 조회 |
-| `lists` | `--create <name>` | 새 List 생성 |
-| `lists` | `--delete <name>` | 특정 List 삭제 |
-| `lists` | `--delete-all` | 모든 Lists 삭제 |
-| `lists` | `-d, --description` | List 설명 (--create와 함께) |
-| `create-lists` | (없음) | 기획으로 Lists 생성 |
-| `create-lists` | `--force` | 기존 Lists 있어도 생성 |
-| `classify` | (없음) | Stars 분류 |
-| `classify` | `--only-new` | 미분류 Stars만 처리 |
-| `classify` | `--use-existing` | 기존 Lists를 카테고리로 사용 |
-| `classify` | `--reset` | 모든 Stars를 Lists에서 제거 |
-
-### 수동 워크플로우 예시
+#### 4. Classify Stars (`classify`)
 
 ```bash
-# 1. 카테고리 기획
-bun run src/index.ts plan
+# Classify Stars into Lists
+stardust classify
 
-# 2. 기획 확인
-bun run src/index.ts plan --show
+# Process only unclassified Stars
+stardust classify --only-new
 
-# 3. 기존 Lists 삭제 (필요시)
-bun run src/index.ts lists --delete-all
+# Use existing Lists as categories (no plan file needed)
+stardust classify --use-existing
 
-# 4. Lists 생성
-bun run src/index.ts create-lists
+# Classify new Stars using existing Lists
+stardust classify --use-existing --only-new
 
-# 5. Stars 분류
-bun run src/index.ts classify
+# Reset: Remove all Stars from Lists
+stardust classify --reset
 ```
 
-## 실행 예시
+### Command Options Summary
+
+| Command | Option | Description |
+|---------|--------|-------------|
+| `run` | (none) | Full automation |
+| `run` | `--only-new` | Process new Stars only |
+| `run` | `--dry-run` | Simulation mode |
+| `plan` | (none) | Plan categories |
+| `plan` | `--show` | View saved plan |
+| `plan` | `--delete` | Delete saved plan |
+| `lists` | (none) | View all Lists |
+| `lists` | `--create <name>` | Create new List |
+| `lists` | `--delete <name>` | Delete specific List |
+| `lists` | `--delete-all` | Delete all Lists |
+| `lists` | `-d, --description` | List description (with --create) |
+| `create-lists` | (none) | Create Lists from plan |
+| `create-lists` | `--force` | Create even if Lists exist |
+| `classify` | (none) | Classify Stars |
+| `classify` | `--only-new` | Process unclassified only |
+| `classify` | `--use-existing` | Use existing Lists as categories |
+| `classify` | `--reset` | Remove all Stars from Lists |
+
+### Manual Workflow Example
+
+```bash
+# 1. Plan categories
+stardust plan
+
+# 2. Review the plan
+stardust plan --show
+
+# 3. Delete existing Lists (if needed)
+stardust lists --delete-all
+
+# 4. Create Lists
+stardust create-lists
+
+# 5. Classify Stars
+stardust classify
+```
+
+## Execution Example
 
 ```
-🚀 GitHub Stars 자동 정리를 시작합니다.
+🚀 Starting GitHub Stars auto-organization.
 
-✔ 523개의 Starred 저장소를 가져왔습니다.
-✔ 32개의 카테고리가 기획되었습니다.
+✔ Fetched 523 starred repositories.
+✔ 32 categories have been planned.
 
-? 기존 32개의 Lists를 삭제하시겠습니까? Yes
-✔ 32개의 Lists 삭제 완료
-✔ 32개의 Lists 생성 완료
+? Delete existing 32 Lists? Yes
+✔ 32 Lists deleted
+✔ 32 Lists created
 
-📂 523개 저장소를 20개씩 분류 중...
+📂 Classifying 523 repositories in batches of 20...
 
-── 배치 1/27 (1-20) ──
-✔ README 조회 완료
-✔ 분류 완료
+── Batch 1/27 (1-20) ──
+✔ README fetched
+✔ Classification complete
   ✅ facebook/react → Web: Frontend
   ✅ tensorflow/tensorflow → AI: Data & ML
   ...
 
-📊 결과:
-  ✅ 성공: 520개
-  ❌ 실패: 3개
+📊 Results:
+  ✅ Success: 520
+  ❌ Failed: 3
 
-✅ 완료! Stars가 Lists로 정리되었습니다.
+✅ Done! Stars have been organized into Lists.
 ```
 
-## 프로젝트 구조
+## Project Structure
 
 ```
-github-stars-arrange/
+stardust-cli/
 ├── package.json
 ├── tsconfig.json
 ├── .env.example
 ├── README.md
 └── src/
-    ├── index.ts              # CLI 진입점
-    ├── types.ts              # 타입 정의
+    ├── index.ts              # CLI entry point
+    ├── types.ts              # Type definitions
     ├── api/
-    │   ├── index.ts          # API export
-    │   ├── types.ts          # API 타입
+    │   ├── index.ts          # API exports
+    │   ├── types.ts          # API types
     │   ├── lists.ts          # Lists CRUD
-    │   ├── repos.ts          # 저장소 조회
-    │   └── readme.ts         # README 조회
+    │   ├── repos.ts          # Repository queries
+    │   └── readme.ts         # README fetching
     ├── commands/
-    │   ├── lists.ts          # lists 명령어
-    │   ├── plan.ts           # plan 명령어
-    │   ├── create-lists.ts   # create-lists 명령어
-    │   ├── classify.ts       # classify 명령어
-    │   └── run.ts            # run 명령어 (전체 자동)
+    │   ├── lists.ts          # lists command
+    │   ├── plan.ts           # plan command
+    │   ├── create-lists.ts   # create-lists command
+    │   ├── classify.ts       # classify command
+    │   └── run.ts            # run command (full automation)
     ├── services/
-    │   └── gemini.ts         # Gemini AI 서비스
+    │   └── gemini.ts         # Gemini AI service
     ├── prompts/
     │   ├── category-planner.ts
     │   └── classifier.ts
     └── utils/
-        ├── config.ts         # 환경 변수 설정
-        ├── rate-limiter.ts   # Rate Limiting
-        └── plan-storage.ts   # 기획 저장/로드
+        ├── config.ts         # Environment config
+        ├── rate-limiter.ts   # Rate limiting
+        └── plan-storage.ts   # Plan save/load
 ```
 
-## 환경 변수 상세
+## Environment Variables Reference
 
-`.env.example` 파일 참고. 주요 설정:
+See `.env.example` for all options. Key settings:
 
 ```env
-# 필수
+# Required
 GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 GITHUB_USERNAME=your-username
 GEMINI_API_KEY=AIzaxxxxxxxxxx
 
-# 카테고리 설정
-MAX_CATEGORIES=32              # 최대 카테고리 수
-MAX_CATEGORIES_PER_REPO=3      # 저장소당 최대 카테고리
-MIN_CATEGORIES_PER_REPO=1      # 저장소당 최소 카테고리
+# Category Settings
+MAX_CATEGORIES=32              # Maximum categories
+MAX_CATEGORIES_PER_REPO=3      # Max categories per repo
+MIN_CATEGORIES_PER_REPO=1      # Min categories per repo
 
-# 배치 처리
-CLASSIFY_BATCH_SIZE=20         # Gemini 분류 배치 크기
-BATCH_DELAY=2000               # 배치 간 딜레이 (ms)
+# Batch Processing
+CLASSIFY_BATCH_SIZE=20         # Gemini classification batch size
+BATCH_DELAY=2000               # Delay between batches (ms)
 
-# Gemini 설정
-GEMINI_MODEL=gemini-2.5-flash  # 사용할 모델
-GEMINI_RPM=15                  # 분당 요청 제한 (Free tier)
+# Gemini Settings
+GEMINI_MODEL=gemini-2.5-flash  # Model to use
+GEMINI_RPM=15                  # Requests per minute limit (Free tier)
 ```
 
-## 기술 스택
+## Tech Stack
 
-- **Runtime**: [Bun](https://bun.sh/)
+- **Runtime**: Node.js / [Bun](https://bun.sh/)
 - **Language**: TypeScript
 - **AI**: Google Gemini (gemini-2.5-flash)
 - **CLI**: Commander.js, @inquirer/prompts, ora
 
-## 제한사항
+## Limitations
 
-- GitHub Lists는 최대 32개까지 생성 가능
-- 각 List 이름은 최대 20자
-- Gemini API Free tier: 15 RPM
+- GitHub Lists are limited to 32 maximum
+- Each List name has a 20 character limit
+- Gemini API Free tier: 15 requests per minute
 
-## 라이선스
+## License
 
 MIT

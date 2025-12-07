@@ -18,7 +18,7 @@ export async function fetchAllMyRepos(
       `https://api.github.com/user/repos?page=${page}&per_page=100&sort=updated`,
       {
         headers: {
-          "User-Agent": "GitHub-Stars-Arrange",
+          "User-Agent": "Stardust-CLI",
           Authorization: `token ${token}`,
         },
       },
@@ -59,7 +59,7 @@ export async function fetchAllMyStarredRepos(
       `https://api.github.com/user/starred?page=${page}&per_page=100&sort=updated`,
       {
         headers: {
-          "User-Agent": "GitHub-Stars-Arrange",
+          "User-Agent": "Stardust-CLI",
           Authorization: `token ${token}`,
         },
       },
@@ -111,7 +111,7 @@ export async function getRepositoryNodeId(
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",
     headers: {
-      "User-Agent": "GitHub-Stars-Arrange",
+      "User-Agent": "Stardust-CLI",
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },

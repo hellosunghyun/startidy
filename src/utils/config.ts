@@ -5,42 +5,42 @@ export interface Config {
   geminiApiKey: string;
 
   // Category settings
-  maxCategories: number; // 최대 카테고리 수 (기본: 32, GitHub 제한)
-  maxCategoriesPerRepo: number; // 저장소당 최대 카테고리 수 (기본: 3)
-  minCategoriesPerRepo: number; // 저장소당 최소 카테고리 수 (기본: 1)
+  maxCategories: number; // Maximum number of categories (default: 32, GitHub limit)
+  maxCategoriesPerRepo: number; // Maximum categories per repository (default: 3)
+  minCategoriesPerRepo: number; // Minimum categories per repository (default: 1)
 
   // Batch processing settings
-  classifyBatchSize: number; // Gemini 분류 배치 크기 (기본: 20)
-  readmeBatchSize: number; // README 조회 동시 요청 수 (기본: 20)
-  listCreateDelay: number; // List 생성 간 딜레이 ms (기본: 500)
-  batchDelay: number; // 배치 간 딜레이 ms (기본: 2000)
+  classifyBatchSize: number; // Gemini classification batch size (default: 20)
+  readmeBatchSize: number; // README fetch concurrent requests (default: 20)
+  listCreateDelay: number; // Delay between List creation in ms (default: 500)
+  batchDelay: number; // Delay between batches in ms (default: 2000)
 
   // Rate limiting
-  geminiRpm: number; // Gemini API 분당 요청 제한 (기본: 15)
-  githubRequestDelay: number; // GitHub API 요청 간 딜레이 ms (기본: 100)
+  geminiRpm: number; // Gemini API requests per minute limit (default: 15)
+  githubRequestDelay: number; // Delay between GitHub API requests in ms (default: 100)
 
   // Gemini model settings
-  geminiModel: string; // Gemini 모델 (기본: gemini-2.0-flash)
-  geminiTemperaturePlanning: number; // 카테고리 기획 temperature (기본: 0.7)
-  geminiTemperatureClassify: number; // 분류 temperature (기본: 0.3)
-  geminiMaxTokensPlanning: number; // 카테고리 기획 max tokens (기본: 65536)
-  geminiMaxTokensClassify: number; // 분류 max tokens (기본: 65536)
+  geminiModel: string; // Gemini model (default: gemini-2.0-flash)
+  geminiTemperaturePlanning: number; // Category planning temperature (default: 0.7)
+  geminiTemperatureClassify: number; // Classification temperature (default: 0.3)
+  geminiMaxTokensPlanning: number; // Category planning max tokens (default: 65536)
+  geminiMaxTokensClassify: number; // Classification max tokens (default: 65536)
 
   // README settings
-  readmeMaxLength: number; // README 최대 길이 (기본: 500, 배치용)
-  readmeMaxLengthSingle: number; // 단일 분류 시 README 최대 길이 (기본: 2000)
+  readmeMaxLength: number; // Maximum README length (default: 500, for batch)
+  readmeMaxLengthSingle: number; // Maximum README length for single classification (default: 2000)
 
   // List settings
-  listIsPrivate: boolean; // 생성되는 List 비공개 여부 (기본: false)
-  listNameMaxLength: number; // List 이름 최대 길이 (기본: 20)
+  listIsPrivate: boolean; // Whether created Lists are private (default: false)
+  listNameMaxLength: number; // Maximum List name length (default: 20)
 
   // Retry settings
-  maxRetries: number; // 최대 재시도 횟수 (기본: 3)
-  retryDelay: number; // 재시도 간 딜레이 ms (기본: 1000)
+  maxRetries: number; // Maximum retry count (default: 3)
+  retryDelay: number; // Delay between retries in ms (default: 1000)
 
   // Debug settings
-  debug: boolean; // 디버그 모드 (기본: false)
-  logApiResponses: boolean; // API 응답 로깅 (기본: false)
+  debug: boolean; // Debug mode (default: false)
+  logApiResponses: boolean; // Log API responses (default: false)
 }
 
 function parseIntEnv(key: string, defaultValue: number): number {
@@ -70,19 +70,19 @@ export function loadConfig(): Config {
 
   if (!githubToken) {
     throw new Error(
-      "GITHUB_TOKEN 환경 변수가 필요합니다. .env 파일을 확인하세요.",
+      "GITHUB_TOKEN environment variable is required. Please check your .env file.",
     );
   }
 
   if (!githubUsername) {
     throw new Error(
-      "GITHUB_USERNAME 환경 변수가 필요합니다. .env 파일을 확인하세요.",
+      "GITHUB_USERNAME environment variable is required. Please check your .env file.",
     );
   }
 
   if (!geminiApiKey) {
     throw new Error(
-      "GEMINI_API_KEY 환경 변수가 필요합니다. .env 파일을 확인하세요.",
+      "GEMINI_API_KEY environment variable is required. Please check your .env file.",
     );
   }
 

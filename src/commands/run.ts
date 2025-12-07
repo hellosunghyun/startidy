@@ -18,9 +18,9 @@ import {
 } from "../api";
 
 export const runCommand = new Command("run")
-  .description("전체 워크플로우 자동 실행 (기획 → 삭제 → 생성 → 분류)")
-  .option("--only-new", "아직 Lists에 추가되지 않은 Stars만 처리 (기존 Lists 유지)")
-  .option("--dry-run", "시뮬레이션 모드 (카테고리 기획만 확인)")
+  .description("Run full workflow automatically (plan → delete → create → classify)")
+  .option("--only-new", "Process only Stars not yet added to Lists (keep existing Lists)")
+  .option("--dry-run", "Simulation mode (only preview category planning)")
   .action(async (options) => {
     try {
       const config = loadConfig();
@@ -34,19 +34,19 @@ export const runCommand = new Command("run")
         });
       }
 
-      console.log("\n🚀 GitHub Stars 자동 정리를 시작합니다.\n");
+      console.log("\n🚀 Starting GitHub Stars auto-organization.\n");
 
       // ========================================
-      // Step 1: Starred repos 가져오기
+      // Step 1: Fetch starred repos
       // ========================================
       const allRepos = await fetchStarredRepos(config);
       if (allRepos.length === 0) {
-        console.log("Star한 저장소가 없습니다.");
+        console.log("No starred repositories found.");
         return;
       }
 
       // ========================================
-      // Step 2: --only-new인 경우 기존 Lists 확인 및 필터링
+      // Step 2: For --only-new, check existing Lists and filter
       // ========================================
       let repos: Repo[];
       let existingLists: Map<string, CreatedList> | null = null;
@@ -59,12 +59,12 @@ export const runCommand = new Command("run")
         existingCategories = result.existingCategories;
 
         if (repos.length === 0) {
-          console.log("\n✅ 모든 Stars가 이미 Lists에 추가되어 있습니다.");
+          console.log("\n✅ All Stars are already added to Lists.");
           return;
         }
 
         if (existingCategories.length === 0) {
-          console.log("\n⚠️ 기존 Lists가 없습니다. --only-new 없이 다시 실행해주세요.");
+          console.log("\n⚠️ No existing Lists found. Please run again without --only-new.");
           return;
         }
       } else {
@@ -72,19 +72,19 @@ export const runCommand = new Command("run")
       }
 
       // ========================================
-      // Step 3: 카테고리 기획 (--only-new가 아닌 경우)
+      // Step 3: Plan categories (if not --only-new)
       // ========================================
       let categories: Category[];
 
       if (options.onlyNew && existingCategories) {
         categories = existingCategories;
-        console.log(`\n📋 기존 ${categories.length}개의 카테고리 사용`);
+        console.log(`\n📋 Using existing ${categories.length} categories`);
       } else {
         categories = await planCategories(gemini, repos, config);
       }
 
       // ========================================
-      // Step 4: Dry Run이면 여기서 종료
+      // Step 4: Exit here for dry run
       // ========================================
       if (options.dryRun) {
         displayDryRunResults(categories, config, repos.length);
@@ -92,32 +92,32 @@ export const runCommand = new Command("run")
       }
 
       // ========================================
-      // Step 5: 기존 Lists 삭제 (--only-new가 아닌 경우)
+      // Step 5: Delete existing Lists (if not --only-new)
       // ========================================
       if (!options.onlyNew) {
         await deleteExistingLists(config);
       }
 
       // ========================================
-      // Step 6: Lists 생성 (--only-new가 아닌 경우)
+      // Step 6: Create Lists (if not --only-new)
       // ========================================
       let createdLists: Map<string, CreatedList>;
 
       if (options.onlyNew && existingLists && existingLists.size > 0) {
         createdLists = existingLists;
-        console.log(`\n📁 기존 ${createdLists.size}개의 Lists 사용`);
+        console.log(`\n📁 Using existing ${createdLists.size} Lists`);
       } else {
         createdLists = await createLists(config, categories);
       }
 
       // ========================================
-      // Step 7: 분류 및 Lists에 추가
+      // Step 7: Classify and add to Lists
       // ========================================
       await classifyAndAddRepos(config, gemini, repos, categories, createdLists);
 
-      console.log("\n✅ 완료! Stars가 Lists로 정리되었습니다.");
+      console.log("\n✅ Done! Stars have been organized into Lists.");
     } catch (error) {
-      console.error("\n❌ 오류 발생:", (error as Error).message);
+      console.error("\n❌ Error:", (error as Error).message);
       process.exit(1);
     }
   });
@@ -127,22 +127,22 @@ export const runCommand = new Command("run")
 // ============================================
 
 async function fetchStarredRepos(config: Config): Promise<Repo[]> {
-  const spinner = ora("Starred 저장소 가져오는 중...").start();
+  const spinner = ora("Fetching starred repositories...").start();
 
   const result = await fetchAllMyStarredRepos(
     config.githubToken,
     config.githubUsername,
     (count) => {
-      spinner.text = `Starred 저장소 가져오는 중... (${count}개)`;
+      spinner.text = `Fetching starred repositories... (${count})`;
     },
   );
 
   if (result.status !== 200 || !result.repos) {
-    spinner.fail("Starred 저장소 조회 실패");
+    spinner.fail("Failed to fetch starred repositories");
     throw new Error(`Failed to fetch starred repos: status ${result.status}`);
   }
 
-  spinner.succeed(`${result.repos.length}개의 Starred 저장소를 가져왔습니다.`);
+  spinner.succeed(`Fetched ${result.repos.length} starred repositories.`);
   return result.repos;
 }
 
@@ -154,7 +154,7 @@ async function filterNewReposOnly(
   existingLists: Map<string, CreatedList>;
   existingCategories: Category[];
 }> {
-  const spinner = ora("기존 Lists 확인 중...").start();
+  const spinner = ora("Checking existing Lists...").start();
 
   const listsData = await fetchGitHubLists(config.githubUsername, config.githubToken);
 
@@ -185,7 +185,7 @@ async function filterNewReposOnly(
   );
 
   const skipped = allRepos.length - newRepos.length;
-  spinner.succeed(`${skipped}개 이미 추가됨 → ${newRepos.length}개 새 저장소 처리 예정`);
+  spinner.succeed(`${skipped} already added → ${newRepos.length} new repositories to process`);
 
   return { newRepos, existingLists, existingCategories };
 }
@@ -195,7 +195,7 @@ async function planCategories(
   repos: Repo[],
   config: Config,
 ): Promise<Category[]> {
-  const spinner = ora(`AI가 ${config.maxCategories}개 카테고리를 기획하는 중...`).start();
+  const spinner = ora(`AI is planning ${config.maxCategories} categories...`).start();
 
   const repoSummaries: RepoSummary[] = repos.map((r) => ({
     owner: r.owner.login,
@@ -207,16 +207,16 @@ async function planCategories(
 
   try {
     const categories = await gemini.planCategories(repoSummaries);
-    spinner.succeed(`${categories.length}개의 카테고리가 기획되었습니다.`);
+    spinner.succeed(`${categories.length} categories have been planned.`);
     return categories;
   } catch (error) {
-    spinner.fail("카테고리 기획 실패");
+    spinner.fail("Failed to plan categories");
     throw error;
   }
 }
 
 function displayDryRunResults(categories: Category[], config: Config, repoCount: number) {
-  console.log("\n📋 [Dry Run] 기획된 카테고리:\n");
+  console.log("\n📋 [Dry Run] Planned Categories:\n");
   console.log("─".repeat(60));
 
   categories.forEach((c, i) => {
@@ -227,51 +227,51 @@ function displayDryRunResults(categories: Category[], config: Config, repoCount:
   });
 
   console.log("─".repeat(60));
-  console.log(`\n📊 요약:`);
-  console.log(`  - 카테고리: ${categories.length}개`);
-  console.log(`  - 처리 대상: ${repoCount}개 저장소`);
-  console.log(`  - 배치 크기: ${config.classifyBatchSize}`);
-  console.log(`  - Gemini 모델: ${config.geminiModel}`);
-  console.log("\n(--dry-run 모드로 실제 실행은 하지 않았습니다.)");
+  console.log(`\n📊 Summary:`);
+  console.log(`  - Categories: ${categories.length}`);
+  console.log(`  - Target repositories: ${repoCount}`);
+  console.log(`  - Batch size: ${config.classifyBatchSize}`);
+  console.log(`  - Gemini model: ${config.geminiModel}`);
+  console.log("\n(Dry run mode - no actual execution.)");
 }
 
 async function deleteExistingLists(config: Config) {
-  const spinner = ora("기존 Lists 확인 중...").start();
+  const spinner = ora("Checking existing Lists...").start();
   const data = await fetchGitHubLists(config.githubUsername, config.githubToken);
 
   if (data.totalLists === 0) {
-    spinner.succeed("기존 Lists 없음");
+    spinner.succeed("No existing Lists");
     return;
   }
 
   spinner.stop();
 
   const shouldDelete = await confirm({
-    message: `기존 ${data.totalLists}개의 Lists를 삭제하시겠습니까?`,
+    message: `Delete existing ${data.totalLists} Lists?`,
     default: true,
   });
 
   if (!shouldDelete) {
-    console.log("취소되었습니다.");
+    console.log("Cancelled.");
     process.exit(0);
   }
 
-  const deleteSpinner = ora(`Lists 삭제 중... (0/${data.totalLists})`).start();
+  const deleteSpinner = ora(`Deleting Lists... (0/${data.totalLists})`).start();
   const deletedCount = await deleteAllGitHubLists(
     config.githubUsername,
     config.githubToken,
     (deleted, total) => {
-      deleteSpinner.text = `Lists 삭제 중... (${deleted}/${total})`;
+      deleteSpinner.text = `Deleting Lists... (${deleted}/${total})`;
     },
   );
-  deleteSpinner.succeed(`${deletedCount}개의 Lists 삭제 완료`);
+  deleteSpinner.succeed(`${deletedCount} Lists deleted`);
 }
 
 async function createLists(
   config: Config,
   categories: Category[],
 ): Promise<Map<string, CreatedList>> {
-  const spinner = ora("Lists 생성 중...").start();
+  const spinner = ora("Creating Lists...").start();
   const createdLists = new Map<string, CreatedList>();
   let created = 0;
 
@@ -291,15 +291,15 @@ async function createLists(
       });
 
       created++;
-      spinner.text = `Lists 생성 중... (${created}/${categories.length})`;
+      spinner.text = `Creating Lists... (${created}/${categories.length})`;
 
       await delay(config.listCreateDelay);
     } catch (error) {
-      console.warn(`\n  ⚠️ "${category.name}" 생성 실패`);
+      console.warn(`\n  ⚠️ Failed to create "${category.name}"`);
     }
   }
 
-  spinner.succeed(`${created}개의 Lists 생성 완료`);
+  spinner.succeed(`${created} Lists created`);
   return createdLists;
 }
 
@@ -313,7 +313,7 @@ async function classifyAndAddRepos(
   const batchSize = config.classifyBatchSize;
   const totalBatches = Math.ceil(repos.length / batchSize);
 
-  console.log(`\n📂 ${repos.length}개 저장소를 ${batchSize}개씩 분류 중...\n`);
+  console.log(`\n📂 Classifying ${repos.length} repositories in batches of ${batchSize}...\n`);
 
   let success = 0;
   let failed = 0;
@@ -323,10 +323,10 @@ async function classifyAndAddRepos(
     const batchEnd = Math.min(batchStart + batchSize, repos.length);
     const batchRepos = repos.slice(batchStart, batchEnd);
 
-    console.log(`── 배치 ${batchIdx + 1}/${totalBatches} (${batchStart + 1}-${batchEnd}) ──`);
+    console.log(`── Batch ${batchIdx + 1}/${totalBatches} (${batchStart + 1}-${batchEnd}) ──`);
 
-    // README 조회
-    const spinner = ora(`README 조회 중... (0/${batchRepos.length})`).start();
+    // Fetch README
+    const spinner = ora(`Fetching README... (0/${batchRepos.length})`).start();
     let readmeCount = 0;
     const batchRepoInfos: BatchRepoInfo[] = await Promise.all(
       batchRepos.map(async (repo) => {
@@ -336,7 +336,7 @@ async function classifyAndAddRepos(
           repo.name,
         );
         readmeCount++;
-        spinner.text = `README 조회 중... (${readmeCount}/${batchRepos.length})`;
+        spinner.text = `Fetching README... (${readmeCount}/${batchRepos.length})`;
         return {
           id: `${repo.owner.login}/${repo.name}`,
           description: repo.description,
@@ -346,22 +346,22 @@ async function classifyAndAddRepos(
         };
       }),
     );
-    spinner.succeed(`README 조회 완료 (${batchRepos.length}개)`);
+    spinner.succeed(`README fetched (${batchRepos.length})`);
 
-    // AI 분류
-    const classifySpinner = ora("AI 분류 중...").start();
+    // AI classification
+    const classifySpinner = ora("AI classifying...").start();
     let results: Map<string, string[]>;
     try {
       results = await gemini.classifyRepositoriesBatch(batchRepoInfos, categories);
-      classifySpinner.succeed("분류 완료");
+      classifySpinner.succeed("Classification complete");
     } catch (error) {
-      classifySpinner.fail("분류 실패");
+      classifySpinner.fail("Classification failed");
       failed += batchRepos.length;
       continue;
     }
 
-    // Lists에 추가
-    const addSpinner = ora(`Lists에 추가 중... (0/${batchRepos.length})`).start();
+    // Add to Lists
+    const addSpinner = ora(`Adding to Lists... (0/${batchRepos.length})`).start();
     let addCount = 0;
     const addResults: { repoId: string; success: boolean; categories?: string[] }[] = [];
 
@@ -394,11 +394,11 @@ async function classifyAndAddRepos(
       }
 
       addCount++;
-      addSpinner.text = `Lists에 추가 중... (${addCount}/${batchRepos.length})`;
+      addSpinner.text = `Adding to Lists... (${addCount}/${batchRepos.length})`;
     }
-    addSpinner.succeed(`Lists에 추가 완료 (${batchRepos.length}개)`);
+    addSpinner.succeed(`Added to Lists (${batchRepos.length})`);
 
-    // 결과 출력
+    // Output results
     for (const result of addResults) {
       if (result.success && result.categories) {
         console.log(`  ✅ ${result.repoId} → ${result.categories.slice(0, 2).join(", ")}`);
@@ -412,7 +412,7 @@ async function classifyAndAddRepos(
     }
   }
 
-  console.log("\n📊 결과:");
-  console.log(`  ✅ 성공: ${success}개`);
-  console.log(`  ❌ 실패: ${failed}개`);
+  console.log("\n📊 Results:");
+  console.log(`  ✅ Success: ${success}`);
+  console.log(`  ❌ Failed: ${failed}`);
 }

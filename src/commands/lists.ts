@@ -11,12 +11,12 @@ import {
 } from "../api";
 
 export const listsCommand = new Command("lists")
-  .description("GitHub Lists 관리")
-  .option("--show", "모든 Lists 조회 (기본값)")
-  .option("--delete-all", "모든 Lists 삭제")
-  .option("--create <name>", "새 List 생성")
-  .option("--delete <name>", "특정 List 삭제")
-  .option("-d, --description <desc>", "List 설명 (--create와 함께 사용)")
+  .description("Manage GitHub Lists")
+  .option("--show", "Show all Lists (default)")
+  .option("--delete-all", "Delete all Lists")
+  .option("--create <name>", "Create a new List")
+  .option("--delete <name>", "Delete a specific List")
+  .option("-d, --description <desc>", "List description (use with --create)")
   .action(async (options) => {
     try {
       const config = loadConfig();
@@ -31,7 +31,7 @@ export const listsCommand = new Command("lists")
         await showAllLists(config);
       }
     } catch (error) {
-      console.error("오류 발생:", (error as Error).message);
+      console.error("Error:", (error as Error).message);
       process.exit(1);
     }
   });
@@ -40,30 +40,30 @@ async function showAllLists(config: {
   githubToken: string;
   githubUsername: string;
 }) {
-  const spinner = ora("Lists 조회 중...").start();
+  const spinner = ora("Fetching Lists...").start();
 
   try {
     const data = await fetchGitHubLists(config.githubUsername, config.githubToken);
     spinner.stop();
 
     if (data.totalLists === 0) {
-      console.log("\n현재 생성된 Lists가 없습니다.");
+      console.log("\nNo Lists found.");
       return;
     }
 
-    console.log(`\n📋 총 ${data.totalLists}개의 Lists:\n`);
+    console.log(`\n📋 Total ${data.totalLists} Lists:\n`);
     console.log("─".repeat(70));
 
     for (const list of data.lists) {
       const repoCount = list.totalRepositories.toString().padStart(3);
       const visibility = list.isPrivate ? "🔒" : "🌐";
       console.log(`${visibility} ${list.name}`);
-      console.log(`   설명: ${list.description || "(없음)"}`);
-      console.log(`   저장소: ${repoCount}개`);
+      console.log(`   Description: ${list.description || "(none)"}`);
+      console.log(`   Repositories: ${repoCount}`);
       console.log("─".repeat(70));
     }
   } catch (error) {
-    spinner.fail("Lists 조회 실패");
+    spinner.fail("Failed to fetch Lists");
     throw error;
   }
 }
@@ -73,7 +73,7 @@ async function handleCreate(
   name: string,
   description?: string,
 ) {
-  const spinner = ora(`"${name}" List 생성 중...`).start();
+  const spinner = ora(`Creating "${name}" List...`).start();
 
   try {
     const result = await createGitHubList(
@@ -82,9 +82,9 @@ async function handleCreate(
       description,
       false,
     );
-    spinner.succeed(`"${result.list.name}" List가 생성되었습니다.`);
+    spinner.succeed(`"${result.list.name}" List has been created.`);
   } catch (error) {
-    spinner.fail("List 생성 실패");
+    spinner.fail("Failed to create List");
     throw error;
   }
 }
@@ -93,7 +93,7 @@ async function handleDelete(
   config: { githubToken: string; githubUsername: string },
   name: string,
 ) {
-  const spinner = ora("List 검색 중...").start();
+  const spinner = ora("Searching for List...").start();
 
   const data = await fetchGitHubLists(config.githubUsername, config.githubToken);
   const list = data.lists.find(
@@ -101,29 +101,29 @@ async function handleDelete(
   );
 
   if (!list) {
-    spinner.fail(`"${name}" List를 찾을 수 없습니다.`);
+    spinner.fail(`"${name}" List not found.`);
     return;
   }
 
   spinner.stop();
 
   const confirmed = await confirm({
-    message: `"${list.name}" (${list.totalRepositories}개의 저장소)를 삭제하시겠습니까?`,
+    message: `Delete "${list.name}" (${list.totalRepositories} repositories)?`,
     default: false,
   });
 
   if (!confirmed) {
-    console.log("취소되었습니다.");
+    console.log("Cancelled.");
     return;
   }
 
-  const deleteSpinner = ora("삭제 중...").start();
+  const deleteSpinner = ora("Deleting...").start();
 
   try {
     await deleteGitHubList(config.githubToken, list.id);
-    deleteSpinner.succeed(`"${list.name}" List가 삭제되었습니다.`);
+    deleteSpinner.succeed(`"${list.name}" List has been deleted.`);
   } catch (error) {
-    deleteSpinner.fail("삭제 실패");
+    deleteSpinner.fail("Failed to delete");
     throw error;
   }
 }
@@ -132,43 +132,43 @@ async function handleDeleteAll(config: {
   githubToken: string;
   githubUsername: string;
 }) {
-  const spinner = ora("현재 Lists 확인 중...").start();
+  const spinner = ora("Checking current Lists...").start();
   const data = await fetchGitHubLists(config.githubUsername, config.githubToken);
   spinner.stop();
 
   if (data.totalLists === 0) {
-    console.log("\n삭제할 Lists가 없습니다.");
+    console.log("\nNo Lists to delete.");
     return;
   }
 
-  console.log(`\n총 ${data.totalLists}개의 Lists:`);
+  console.log(`\nTotal ${data.totalLists} Lists:`);
   for (const list of data.lists) {
-    console.log(`  - ${list.name} (${list.totalRepositories}개의 저장소)`);
+    console.log(`  - ${list.name} (${list.totalRepositories} repositories)`);
   }
 
   const confirmed = await confirm({
-    message: `정말로 ${data.totalLists}개의 모든 Lists를 삭제하시겠습니까?`,
+    message: `Are you sure you want to delete all ${data.totalLists} Lists?`,
     default: false,
   });
 
   if (!confirmed) {
-    console.log("취소되었습니다.");
+    console.log("Cancelled.");
     return;
   }
 
-  const deleteSpinner = ora(`Lists 삭제 중... (0/${data.totalLists})`).start();
+  const deleteSpinner = ora(`Deleting Lists... (0/${data.totalLists})`).start();
 
   try {
     const deletedCount = await deleteAllGitHubLists(
       config.githubUsername,
       config.githubToken,
       (deleted, total) => {
-        deleteSpinner.text = `Lists 삭제 중... (${deleted}/${total})`;
+        deleteSpinner.text = `Deleting Lists... (${deleted}/${total})`;
       },
     );
-    deleteSpinner.succeed(`${deletedCount}개의 Lists가 삭제되었습니다.`);
+    deleteSpinner.succeed(`${deletedCount} Lists have been deleted.`);
   } catch (error) {
-    deleteSpinner.fail("일부 Lists 삭제 실패");
+    deleteSpinner.fail("Failed to delete some Lists");
     throw error;
   }
 }
