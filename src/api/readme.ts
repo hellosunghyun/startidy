@@ -1,3 +1,5 @@
+import { retryWithBackoff } from "../utils/rate-limiter";
+
 /**
  * Fetches the README content for a repository
  */
@@ -42,24 +44,29 @@ export async function fetchRepositoryReadme(
       }
     `;
 
-    const response = await fetch("https://api.github.com/graphql", {
-      method: "POST",
-      headers: {
-        "User-Agent": "Stardust-CLI",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+    const data = await retryWithBackoff(
+      async () => {
+        const response = await fetch("https://api.github.com/graphql", {
+          method: "POST",
+          headers: {
+            "User-Agent": "Stardust-CLI",
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `GitHub API request failed (${response.status}): ${errorText}`,
+          );
+        }
+
+        return response.json();
       },
-      body: JSON.stringify({ query }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `GitHub API request failed (${response.status}): ${errorText}`,
-      );
-    }
-
-    const data = await response.json();
+      { maxRetries: 3, initialDelayMs: 1000, maxDelayMs: 10000 },
+    );
 
     if (data.errors) {
       console.warn("Warning fetching README:", JSON.stringify(data.errors));
