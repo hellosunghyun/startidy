@@ -1,4 +1,4 @@
-# Stardust
+# Startidy
 
 English | [한국어](README.ko.md)
 
@@ -38,21 +38,21 @@ Type: ETC
 ### Global Install via npm (Recommended)
 
 ```bash
-npm install -g @hellosunghyun/stardust
+npm install -g startidy
 ```
 
-After installation, you can use the `stardust` command directly:
+After installation, you can use the `startidy` command directly:
 
 ```bash
-stardust run
+startidy run
 ```
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/hellosunghyun/stardust.git
-cd stardust
+git clone https://github.com/hellosunghyun/startidy.git
+cd startidy
 
 # Install dependencies
 npm install
@@ -66,12 +66,12 @@ npm link
 
 ## Configuration
 
-You can configure Stardust CLI in three ways:
+You can configure Startidy in three ways:
 
 ### Option 1: CLI Arguments (Recommended for one-time use)
 
 ```bash
-stardust --token ghp_xxx --username your-name --gemini-key AIza_xxx run
+startidy --token ghp_xxx --username your-name --gemini-key AIza_xxx run
 ```
 
 ### Option 2: Environment Variables
@@ -93,7 +93,7 @@ set GITHUB_USERNAME=your-username
 set GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Then run
-stardust run
+startidy run
 ```
 
 ### Option 3: `.env` File (Recommended for repeated use)
@@ -137,16 +137,16 @@ GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
 
 ```bash
 # Run the full workflow (plan → delete → create → classify)
-stardust run
+startidy run
 
 # With inline credentials
-stardust --token ghp_xxx --username myname --gemini-key AIza_xxx run
+startidy --token ghp_xxx --username myname --gemini-key AIza_xxx run
 
 # Process only newly starred repositories (keep existing Lists)
-stardust run --only-new
+startidy run --only-new
 
 # Simulation mode (preview categories only)
-stardust run --dry-run
+startidy run --dry-run
 ```
 
 ### Step-by-Step Execution
@@ -155,58 +155,58 @@ stardust run --dry-run
 
 ```bash
 # Analyze Stars and plan categories (saved to file)
-stardust plan
+startidy plan
 
 # View saved plan
-stardust plan --show
+startidy plan --show
 
 # Delete saved plan
-stardust plan --delete
+startidy plan --delete
 ```
 
 #### 2. Manage Lists (`lists`)
 
 ```bash
 # View all Lists
-stardust lists
+startidy lists
 
 # Create a new List
-stardust lists --create "Lang: Python" -d "Python projects"
+startidy lists --create "Lang: Python" -d "Python projects"
 
 # Delete a specific List
-stardust lists --delete "Lang: Python"
+startidy lists --delete "Lang: Python"
 
 # Delete all Lists
-stardust lists --delete-all
+startidy lists --delete-all
 ```
 
 #### 3. Create Lists (`create-lists`)
 
 ```bash
 # Create Lists from planned categories
-stardust create-lists
+startidy create-lists
 
 # Create Lists even if some already exist
-stardust create-lists --force
+startidy create-lists --force
 ```
 
 #### 4. Classify Stars (`classify`)
 
 ```bash
 # Classify Stars into Lists
-stardust classify
+startidy classify
 
 # Process only unclassified Stars
-stardust classify --only-new
+startidy classify --only-new
 
 # Use existing Lists as categories (no plan file needed)
-stardust classify --use-existing
+startidy classify --use-existing
 
 # Classify new Stars using existing Lists
-stardust classify --use-existing --only-new
+startidy classify --use-existing --only-new
 
 # Reset: Remove all Stars from Lists
-stardust classify --reset
+startidy classify --reset
 ```
 
 ### Command Options Summary
@@ -235,19 +235,19 @@ stardust classify --reset
 
 ```bash
 # 1. Plan categories
-stardust plan
+startidy plan
 
 # 2. Review the plan
-stardust plan --show
+startidy plan --show
 
 # 3. Delete existing Lists (if needed)
-stardust lists --delete-all
+startidy lists --delete-all
 
 # 4. Create Lists
-stardust create-lists
+startidy create-lists
 
 # 5. Classify Stars
-stardust classify
+startidy classify
 ```
 
 ## Execution Example
@@ -281,7 +281,7 @@ stardust classify
 ## Project Structure
 
 ```
-stardust/
+startidy/
 ├── package.json
 ├── tsconfig.json
 ├── .env.example

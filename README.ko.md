@@ -1,4 +1,4 @@
-# Stardust
+# Startidy
 
 [English](README.md) | 한국어
 
@@ -38,21 +38,21 @@ Type: ETC
 ### npm을 통한 전역 설치 (권장)
 
 ```bash
-npm install -g @hellosunghyun/stardust
+npm install -g startidy
 ```
 
-설치 후 `stardust` 명령어를 바로 사용할 수 있습니다:
+설치 후 `startidy` 명령어를 바로 사용할 수 있습니다:
 
 ```bash
-stardust run
+startidy run
 ```
 
 ### 소스에서 설치
 
 ```bash
 # 저장소 클론
-git clone https://github.com/hellosunghyun/stardust.git
-cd stardust
+git clone https://github.com/hellosunghyun/startidy.git
+cd startidy
 
 # 의존성 설치
 npm install
@@ -66,12 +66,12 @@ npm link
 
 ## 설정
 
-Stardust CLI는 세 가지 방법으로 설정할 수 있습니다:
+Startidy는 세 가지 방법으로 설정할 수 있습니다:
 
 ### 방법 1: CLI 인수 (일회성 사용에 권장)
 
 ```bash
-stardust --token ghp_xxx --username your-name --gemini-key AIza_xxx run
+startidy --token ghp_xxx --username your-name --gemini-key AIza_xxx run
 ```
 
 ### 방법 2: 환경 변수
@@ -93,7 +93,7 @@ set GITHUB_USERNAME=your-username
 set GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
 
 # 실행
-stardust run
+startidy run
 ```
 
 ### 방법 3: `.env` 파일 (반복 사용에 권장)
@@ -137,16 +137,16 @@ GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxx
 
 ```bash
 # 전체 워크플로우 실행 (계획 → 삭제 → 생성 → 분류)
-stardust run
+startidy run
 
 # 인라인 인증 정보 사용
-stardust --token ghp_xxx --username myname --gemini-key AIza_xxx run
+startidy --token ghp_xxx --username myname --gemini-key AIza_xxx run
 
 # 새로 Star한 저장소만 처리 (기존 Lists 유지)
-stardust run --only-new
+startidy run --only-new
 
 # 시뮬레이션 모드 (카테고리 계획만 미리보기)
-stardust run --dry-run
+startidy run --dry-run
 ```
 
 ### 단계별 실행
@@ -155,58 +155,58 @@ stardust run --dry-run
 
 ```bash
 # Stars 분석 및 카테고리 계획 (파일에 저장)
-stardust plan
+startidy plan
 
 # 저장된 계획 보기
-stardust plan --show
+startidy plan --show
 
 # 저장된 계획 삭제
-stardust plan --delete
+startidy plan --delete
 ```
 
 #### 2. Lists 관리 (`lists`)
 
 ```bash
 # 모든 Lists 보기
-stardust lists
+startidy lists
 
 # 새 List 생성
-stardust lists --create "Lang: Python" -d "Python 프로젝트"
+startidy lists --create "Lang: Python" -d "Python 프로젝트"
 
 # 특정 List 삭제
-stardust lists --delete "Lang: Python"
+startidy lists --delete "Lang: Python"
 
 # 모든 Lists 삭제
-stardust lists --delete-all
+startidy lists --delete-all
 ```
 
 #### 3. Lists 생성 (`create-lists`)
 
 ```bash
 # 계획된 카테고리로 Lists 생성
-stardust create-lists
+startidy create-lists
 
 # 일부 이미 존재해도 추가 생성
-stardust create-lists --force
+startidy create-lists --force
 ```
 
 #### 4. Stars 분류 (`classify`)
 
 ```bash
 # Stars를 Lists에 분류
-stardust classify
+startidy classify
 
 # 미분류된 Stars만 처리
-stardust classify --only-new
+startidy classify --only-new
 
 # 기존 Lists를 카테고리로 사용 (계획 파일 불필요)
-stardust classify --use-existing
+startidy classify --use-existing
 
 # 기존 Lists 사용하여 새 Stars만 분류
-stardust classify --use-existing --only-new
+startidy classify --use-existing --only-new
 
 # 초기화: 모든 Stars를 Lists에서 제거
-stardust classify --reset
+startidy classify --reset
 ```
 
 ### 명령 옵션 요약
@@ -235,19 +235,19 @@ stardust classify --reset
 
 ```bash
 # 1. 카테고리 계획
-stardust plan
+startidy plan
 
 # 2. 계획 검토
-stardust plan --show
+startidy plan --show
 
 # 3. 기존 Lists 삭제 (필요시)
-stardust lists --delete-all
+startidy lists --delete-all
 
 # 4. Lists 생성
-stardust create-lists
+startidy create-lists
 
 # 5. Stars 분류
-stardust classify
+startidy classify
 ```
 
 ## 실행 예시
@@ -281,7 +281,7 @@ stardust classify
 ## 프로젝트 구조
 
 ```
-stardust/
+startidy/
 ├── package.json
 ├── tsconfig.json
 ├── .env.example
